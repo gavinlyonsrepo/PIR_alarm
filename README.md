@@ -1,14 +1,15 @@
 Overview
 --------------------
-Name : PIR_ALARM
-Title : PIR Alarm
-Description : An Arduino based passive infrared red (PIR) Alarm. Input from Jumper and PIR sensor.
+
+* Name : PIR_ALARM
+* Title : PIR Alarm
+* Description : An Arduino based passive infrared red (PIR) Alarm. Input from Jumper and PIR sensor.
 Output to Buzzer ,  and Status LED's. 
-Author: Gavin Lyons
-MC: ATMega328p stand-only also tested on arduino Uno and Nano
-URL: https://github.com/gavinlyonsrepo/PIR_Alarm_arduino
-Date: 12-03-19
-IDE: Arduino v 1.8.9
+* Author: Gavin Lyons
+* MC: ATMega328p stand-only also tested on arduino Uno and Nano
+* URL: https://github.com/gavinlyonsrepo/PIR_Alarm
+* Date: 12-03-19
+* IDE: Arduino v 1.8.9
 
 Features
 ----------------------
@@ -19,7 +20,7 @@ Schematic
 
 PIR_Alarm_2.0
 
-![ScreenShot schematic](https://github.com/gavinlyonsrepo/PIR_Alarm_arduino/blob/master/doc/eagle/PIR_alarm.png)
+![ScreenShot schematic](https://github.com/gavinlyonsrepo/PIR_Alarm/blob/master/doc/eagle/PIR_alarm.png)
 
 
 Copyright

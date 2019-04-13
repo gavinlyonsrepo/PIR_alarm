@@ -6,7 +6,7 @@
   Output to Buzzer ,  and Status LED's. 
   Author: Gavin Lyons
   MC: ATMega328p stand-only also tested on arduino Uno and Nano
-  URL:https://github.com/gavinlyonsrepo/PIR_Alarm_arduino
+  URL:https://github.com/gavinlyonsrepo/PIR_Alarm
   Date: 12-03-19
   IDE: Arduino v 1.8.9
 */
