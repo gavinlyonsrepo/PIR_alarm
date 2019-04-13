@@ -1,9 +1,9 @@
 //******************* HEADER **************
 /*
-  Name : PIR_ALARM
+  Name : PIR_ALARM_2
   Title : PIR Alarm
-  Description : An Arduino based passive infrared red (PIR) Alarm. Input from Jumper and PIR sensor.
-  Output to Buzzer ,  and Status LED's. 
+  Description : An Arduino based passive infrared red (PIR) Alarm. Inputs from Jumpers and PIR sensor.
+  Output to Buzzer, Relay ,  and Status LED's.
   Author: Gavin Lyons
   MC: ATMega328p stand-only also tested on arduino Uno and Nano
   URL:https://github.com/gavinlyonsrepo/PIR_Alarm_arduino
@@ -12,28 +12,29 @@
 */
 
 //********************** GLOBALS ***************
-//var to hold mode based on jumper input
-uint8_t  mode = 0;
+
+uint8_t  mode = 0; //var to hold mode based on jumper input
 uint8_t  AlarmCount = 0;
 
 //**********************DEFINES ***************
 // GPIO pins
-#define Jumper_pin 5
-#define Buzzer_pin 12
-#define Led_pin 8 
-#define PIR_pin 10
-#define Led_trig 13
+#define Jumper1_pin 6
+#define Jumper2_pin 7
+#define Buzzer_pin 10
+#define Relay_pin 9
+#define Led_pin 8
+#define PIR_pin 2
 
-// delay
+// delays
 #define myDelay 1000
 #define InitDelay 15 // number of (myDelays*2) for PIR init delay
-#define AlarmDelay 120 //number of myDelays for alarm state
+#define AlarmDelay 120 //number of myDelays for alarm state max 256
 #define AlarmMAX 10 //alarm go off X times
 
 //********************** SETUP ************************
 void setup() {
   GPIO_Setup();
-  Serial_Setup(); 
+  Serial_Setup();
   Check_Jumper();
   Init_Delay();
 }
@@ -46,46 +47,66 @@ void loop() {
 
 // ********************* FUNCTION SPACE ****************
 
-// Function check jumper ,Run at Setup 
+// Function check jumper ,Run at Setup
 // check  if switch/jumpers are set for modes setup.
 void Check_Jumper()
 {
   boolean JP1;
-  JP1 = digitalRead(Jumper_pin);
+  boolean JP2;
+  JP1 = digitalRead(Jumper1_pin);
+  JP2 = digitalRead(Jumper2_pin);
   Serial.print("JP1: ");
   Serial.println(JP1);
+  Serial.print("JP2: ");
+  Serial.println(JP2);
 
-  if (JP1 == 1)  {
+  // Jumper truth table
+  //00 = All on
+  //01 = relay & LED on
+  //10 = buzzer & LED  on
+  //11 = LED only
+
+  if (JP1 == 1 && JP2 == 1)
+  {
     mode = 0; //LED only
   }
-  else  if  (JP1 == 0) {
-    mode = 1; //buzzer and LED 
-
+  else  if  (JP1 == 1 && JP2 == 0)
+  {
+    mode = 1; //buzzer and LED
+  }
+  else if  (JP1 == 0 && JP2 == 1)
+  {
+    mode = 2;// Relay and LED
+  }
+  else if (JP1 == 0 && JP2 == 0)
+  {
+    mode = 3;//everything
   }
   Serial.print("mode: ");
   Serial.println(mode);
 }
 
-//Function GPIO setup , run at setup setups
+//Function GPIO setup , run at setup setups the GPIO pins
 void GPIO_Setup(void)
 {
   //Pir pin
   pinMode(PIR_pin, INPUT);
-  //digitalWrite(Jumper_pin, HIGH);
-  
-  ////Internal resistors for jumpers
-  pinMode(Jumper_pin, INPUT);
-  digitalWrite(Jumper_pin, HIGH);
+
+  ////Internal pull-up resistors for jumpers
+  pinMode(Jumper1_pin, INPUT);
+  digitalWrite(Jumper1_pin, HIGH);
+  pinMode(Jumper2_pin, INPUT);
+  digitalWrite(Jumper1_pin, HIGH);
 
   // initialize the LED pin as an output:
   pinMode(Led_pin, OUTPUT);
   digitalWrite(Led_pin, LOW);
 
-  // initialize the LED pin as an output:
-  pinMode(Led_trig, OUTPUT);
-  digitalWrite(Led_trig, LOW);
+  // initialize the Relay pin as an output:
+  pinMode(Relay_pin, OUTPUT);
+  digitalWrite(Led_pin, LOW);
 
-  // initialize the LED pin as an output:
+  // initialize the Buzzer pin as an output:
   pinMode(Buzzer_pin, OUTPUT);
   digitalWrite(Buzzer_pin, LOW);
 }
@@ -119,7 +140,6 @@ void Check_Alarm(void)
 void Output_Alarm(void)
 {
   Serial.println("Movement detected.");
-  digitalWrite(Led_trig, HIGH); 
   AlarmCount++;
   switch (mode)
   {
@@ -142,15 +162,42 @@ void Output_Alarm(void)
       {
         delay(myDelay);
       }
+      digitalWrite(Buzzer_pin, LOW);
+      digitalWrite(Led_pin, LOW);
+      break;
+    case 2: // relay and LED only
+      digitalWrite(Led_pin, HIGH);
+      if (AlarmCount < AlarmMAX) // Stop false triggers causing buzzer/relay
+      {
+        digitalWrite(Relay_pin, HIGH);
+      }
+      for (uint8_t i = 0; i < AlarmDelay ; i++)
+      {
+        delay(myDelay);
+      }
+      digitalWrite(Relay_pin, LOW);
+      digitalWrite(Led_pin, LOW);
       break;
 
+    case 3:
+      digitalWrite(Led_pin, HIGH);
+      if (AlarmCount < AlarmMAX) // Stop false triggers causing buzzer/relay
+      {
+        digitalWrite(Relay_pin, HIGH);
+        digitalWrite(Buzzer_pin, HIGH);
+      }
+      for (uint8_t i = 0; i < AlarmDelay ; i++)
+      {
+        delay(myDelay);
+      }
+      digitalWrite(Buzzer_pin, LOW);
+      digitalWrite(Relay_pin, LOW);
+      digitalWrite(Led_pin, LOW);
+      break;
   }
-  delay(myDelay);
-  digitalWrite(Buzzer_pin, LOW);
-  digitalWrite(Led_pin, LOW);
 }
 
-//inital delay at setup PIR sensor needs this.
+//inital delay at setup, PIR sensor needs this.
 void Init_Delay(void)
 {
   digitalWrite(Led_pin, HIGH);
